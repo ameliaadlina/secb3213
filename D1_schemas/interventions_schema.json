@@ -43,9 +43,12 @@
       },
       "dosage": {
         "bsonType": "object",
-        "required": ["amount", "unit", "frequency", "route"],
+        "required": ["unit", "frequency", "route"],
         "properties": {
-          "amount": { "bsonType": "double" },
+          "amount": {
+            "bsonType": ["double", "null"],
+            "description": "Null for interventions without a single numeric dose — e.g. cell therapies (CAR-T) dosed by cell count, combination regimens, or observation-only arms."
+          },
           "unit": {
             "bsonType": "string",
             "enum": ["mg", "mg/kg", "IU", "mL"]
