@@ -1,0 +1,37 @@
+# --- Environment / secrets ---
+.env
+.env.*
+*.pem
+
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+
+# --- Node (if the portal or any tooling uses it) ---
+node_modules/
+npm-debug.log*
+
+# --- OS / editor cruft ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# --- Large / binary deliverables (share via Drive, link in README) ---
+D3_backup/*.tar.gz
+D3_backup/*.zip
+D8_video/*.mp4
+D8_video/*.mov
+
+# --- MongoDB local data dir, if run locally ---
+data/db/
+mongod.log
