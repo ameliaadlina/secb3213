@@ -6,7 +6,7 @@ Run with:
     streamlit run app.py
 """
 import streamlit as st
-from pages import trials_dashboard, patients_search, ae_analytics
+from pages import trials_and_interventions_dashboard, patients_search, ae_analytics
 
 st.set_page_config(page_title="CTMS Data Portal", layout="wide")
 
@@ -14,7 +14,7 @@ st.sidebar.title("CTMS Data Portal")
 st.sidebar.caption("Meridian Clinical Research Institute")
 
 PAGES = {
-    "Trials & Interventions": trials_dashboard,
+    "Trials & Interventions": trials_and_interventions_dashboard,
     "Patients & Sites": patients_search,
     "Adverse Events": ae_analytics,
 }
