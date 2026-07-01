@@ -57,14 +57,21 @@ CTMS_DB_NAME=ctms
 ```
 
 ### 4. Load the data
-Run ingestion scripts **in this order** — adverse_events references the other three collections,
-so it must be loaded last:
+The real dataset (10 trials, 20 interventions, 100 patients, 300 adverse events) lives as CSVs in
+`D2_ingestion/raw_data/` — already included in this repo. Each `ingest_*.py` script reads its CSV,
+transforms it into the D1 schema shape, and inserts it with the matching validator attached.
+
+Run **in this order** — adverse_events references the other three collections, so it must be
+loaded last:
 ```bash
 python D2_ingestion/ingest_trials.py
 python D2_ingestion/ingest_interventions.py
 python D2_ingestion/ingest_patients.py
 python D2_ingestion/ingest_adverse_events.py
 ```
+`ingest_adverse_events.py` checks referential integrity before inserting and will warn (not fail)
+if any patient_id / trial_id / intervention_id doesn't resolve — that's your signal the other three
+scripts haven't been run yet.
 
 ### 5. Run the API
 ```bash

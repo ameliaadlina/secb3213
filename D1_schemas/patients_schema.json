@@ -49,6 +49,15 @@
         "bsonType": "string",
         "enum": ["Never", "Former", "Current"]
       },
+      "blood_type": {
+        "bsonType": "string",
+        "enum": ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"],
+        "description": "Present in the provided dataset though not listed in the original brief's field table. Kept optional since it's not part of the documented spec."
+      },
+      "enrolment_date": {
+        "bsonType": "date",
+        "description": "Date the patient enrolled at their site. Present in the provided dataset though not listed in the original brief's field table. Kept optional for the same reason."
+      },
       "diagnosis": {
         "bsonType": "object",
         "description": "Embedded primary diagnosis at enrolment.",
