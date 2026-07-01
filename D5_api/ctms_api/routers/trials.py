@@ -35,27 +35,15 @@ def list_trials(
 
 
 # ---------------------------------------------------------------------
-# Single trial by ID — required identifier, so it's a path param.
-# GET /api/trials/{trial_id}
-# ---------------------------------------------------------------------
-@router.get("/api/trials/{trial_id}")
-def get_trial(trial_id: str):
-    trial = trials_col.find_one({"trial_id": trial_id})
-    if not trial:
-        raise HTTPException(status_code=404, detail=f"Trial '{trial_id}' not found")
-    trial["_id"] = str(trial["_id"])
-    return trial
-
-
-# ---------------------------------------------------------------------
 # AR6 — Enrolment progress across trials, filterable by sponsor/phase.
 # GET /api/trials/enrolment-progress?sponsor=MCRI&phase=Phase II
 #
-# TODO (Member A): implement the aggregation. Sketch:
-#   1. $match on optional sponsor / phase filters
-#   2. $project or $addFields: enrolment_pct =
-#        round(enrolled_count / enrolment_target * 100, 1)
-#   3. Return trial_id, title, enrolled_count, enrolment_target, enrolment_pct
+# IMPORTANT: this must be registered BEFORE /api/trials/{trial_id} below.
+# FastAPI matches routes in registration order, and {trial_id} is a
+# catch-all path param — if it came first, a request to this URL would
+# match {trial_id}="enrolment-progress" instead, look for a trial with
+# that literal ID, find none, and 404. Static paths always go before
+# dynamic path-param routes on the same prefix.
 # ---------------------------------------------------------------------
 @router.get("/api/trials/enrolment-progress", response_model=Envelope)
 def enrolment_progress(
@@ -96,3 +84,17 @@ def enrolment_progress(
     skip = (pagination["page"] - 1) * pagination["limit"]
     data = list(trials_col.aggregate(pipeline + [{"$skip": skip}, {"$limit": pagination["limit"]}]))
     return Envelope(total=total, page=pagination["page"], limit=pagination["limit"], data=data)
+
+
+# ---------------------------------------------------------------------
+# Single trial by ID — required identifier, so it's a path param.
+# GET /api/trials/{trial_id}
+# Registered AFTER enrolment-progress — see note above.
+# ---------------------------------------------------------------------
+@router.get("/api/trials/{trial_id}")
+def get_trial(trial_id: str):
+    trial = trials_col.find_one({"trial_id": trial_id})
+    if not trial:
+        raise HTTPException(status_code=404, detail=f"Trial '{trial_id}' not found")
+    trial["_id"] = str(trial["_id"])
+    return trial
