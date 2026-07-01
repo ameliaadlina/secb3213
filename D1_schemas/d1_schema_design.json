@@ -1,0 +1,590 @@
+{
+  "_meta": {
+    "project": "CTMS \u2014 Meridian Clinical Research Institute",
+    "note": "This combined file is for design presentation (D1 deliverable / report Section 3). Each collection also has its own standalone schema file in this folder for actual use with db.create_collection(validator=...) during D2 ingestion."
+  },
+  "clinical_trials": {
+    "$jsonSchema": {
+      "bsonType": "object",
+      "title": "Clinical Trials",
+      "description": "Central entity. Defines one or more treatment arms. Referenced by interventions.trial_id, patients.enrolled_trials, and adverse_events.trial_id.",
+      "required": [
+        "trial_id",
+        "title",
+        "short_title",
+        "phase",
+        "status",
+        "sponsor",
+        "conditions",
+        "interventions",
+        "start_date",
+        "estimated_end_date",
+        "enrolment_target",
+        "enrolled_count",
+        "arms",
+        "primary_endpoint",
+        "secondary_endpoints",
+        "sites",
+        "ethical_approval",
+        "created_at"
+      ],
+      "properties": {
+        "trial_id": {
+          "bsonType": "string",
+          "pattern": "^NCT-[0-9]{8}$",
+          "description": "Unique. Format NCT-XXXXXXXX, e.g. NCT-20240001."
+        },
+        "title": {
+          "bsonType": "string"
+        },
+        "short_title": {
+          "bsonType": "string",
+          "maxLength": 80
+        },
+        "phase": {
+          "bsonType": "string",
+          "enum": [
+            "Phase I",
+            "Phase II",
+            "Phase III",
+            "Phase IV",
+            "Not Applicable"
+          ]
+        },
+        "status": {
+          "bsonType": "string",
+          "enum": [
+            "Recruiting",
+            "Active (not recruiting)",
+            "Completed",
+            "Terminated",
+            "Suspended",
+            "Withdrawn"
+          ]
+        },
+        "sponsor": {
+          "bsonType": "string"
+        },
+        "conditions": {
+          "bsonType": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "bsonType": "string"
+          }
+        },
+        "interventions": {
+          "bsonType": "array",
+          "description": "Array of intervention_id strings (references interventions.intervention_id). One trial may have multiple interventions, one per arm.",
+          "items": {
+            "bsonType": "string",
+            "pattern": "^INT-[0-9]{6}$"
+          }
+        },
+        "start_date": {
+          "bsonType": "date"
+        },
+        "estimated_end_date": {
+          "bsonType": "date"
+        },
+        "enrolment_target": {
+          "bsonType": "int",
+          "minimum": 30,
+          "maximum": 2000
+        },
+        "enrolled_count": {
+          "bsonType": "int",
+          "minimum": 0,
+          "description": "Must be <= enrolment_target (enforced at application level; JSON Schema cannot compare two sibling fields)."
+        },
+        "arms": {
+          "bsonType": "array",
+          "description": "1-4 arms. Defines the trial's treatment strategies. Each intervention carries a reference back to its arm by arm_label.",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "bsonType": "object",
+            "required": [
+              "arm_label",
+              "arm_type",
+              "description"
+            ],
+            "properties": {
+              "arm_label": {
+                "bsonType": "string"
+              },
+              "arm_type": {
+                "bsonType": "string",
+                "enum": [
+                  "Experimental",
+                  "Active Comparator",
+                  "Placebo Comparator",
+                  "No Intervention"
+                ]
+              },
+              "description": {
+                "bsonType": "string"
+              }
+            }
+          }
+        },
+        "primary_endpoint": {
+          "bsonType": "string"
+        },
+        "secondary_endpoints": {
+          "bsonType": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "items": {
+            "bsonType": "string"
+          }
+        },
+        "sites": {
+          "bsonType": "array",
+          "items": {
+            "bsonType": "string",
+            "enum": [
+              "SITE-01",
+              "SITE-02",
+              "SITE-03",
+              "SITE-04",
+              "SITE-05"
+            ]
+          }
+        },
+        "ethical_approval": {
+          "bsonType": "object",
+          "required": [
+            "approval_id",
+            "committee",
+            "approved_on"
+          ],
+          "properties": {
+            "approval_id": {
+              "bsonType": "string"
+            },
+            "committee": {
+              "bsonType": "string"
+            },
+            "approved_on": {
+              "bsonType": "date"
+            }
+          }
+        },
+        "created_at": {
+          "bsonType": "date"
+        }
+      }
+    }
+  },
+  "interventions": {
+    "$jsonSchema": {
+      "bsonType": "object",
+      "title": "Interventions",
+      "description": "A specific therapeutic intervention administered within one arm of one trial. Belongs to exactly one arm within one trial \u2014 has no clinical meaning outside that context. Referenced by adverse_events.intervention_id.",
+      "required": [
+        "intervention_id",
+        "trial_id",
+        "arm_label",
+        "name",
+        "type",
+        "dosage",
+        "duration_weeks",
+        "regulatory_status",
+        "created_at"
+      ],
+      "properties": {
+        "intervention_id": {
+          "bsonType": "string",
+          "pattern": "^INT-[0-9]{6}$",
+          "description": "Unique. Format INT-XXXXXX."
+        },
+        "trial_id": {
+          "bsonType": "string",
+          "pattern": "^NCT-[0-9]{8}$",
+          "description": "Reference to clinical_trials.trial_id. Required \u2014 an intervention without a trial context has no meaning."
+        },
+        "arm_label": {
+          "bsonType": "string",
+          "description": "Must match an arm_label in the parent trial's arms array. This is the field used to trace an adverse event to its arm: AE -> intervention_id -> this arm_label."
+        },
+        "name": {
+          "bsonType": "string",
+          "description": "Generic or brand name, e.g. Pembrolizumab, Placebo saline, Metformin 500mg."
+        },
+        "mechanism": {
+          "bsonType": "string",
+          "description": "Optional short description, e.g. PD-1 checkpoint inhibitor."
+        },
+        "type": {
+          "bsonType": "string",
+          "enum": [
+            "Drug",
+            "Biologic",
+            "Device",
+            "Procedure",
+            "Dietary Supplement",
+            "Placebo",
+            "Other"
+          ]
+        },
+        "dosage": {
+          "bsonType": "object",
+          "required": [
+            "amount",
+            "unit",
+            "frequency",
+            "route"
+          ],
+          "properties": {
+            "amount": {
+              "bsonType": "double"
+            },
+            "unit": {
+              "bsonType": "string",
+              "enum": [
+                "mg",
+                "mg/kg",
+                "IU",
+                "mL"
+              ]
+            },
+            "frequency": {
+              "bsonType": "string",
+              "enum": [
+                "Once daily",
+                "Twice daily",
+                "Weekly",
+                "Biweekly",
+                "Monthly"
+              ]
+            },
+            "route": {
+              "bsonType": "string",
+              "enum": [
+                "Oral",
+                "Intravenous",
+                "Subcutaneous",
+                "Intramuscular",
+                "Topical"
+              ]
+            }
+          }
+        },
+        "duration_weeks": {
+          "bsonType": "int",
+          "minimum": 1,
+          "maximum": 104
+        },
+        "target_gene": {
+          "bsonType": [
+            "string",
+            "null"
+          ],
+          "description": "HGNC gene symbol, e.g. EGFR, BRCA1, TP53, PD-L1. Null if not applicable."
+        },
+        "target_protein": {
+          "bsonType": [
+            "string",
+            "null"
+          ],
+          "description": "UniProt-style name, e.g. Programmed cell death protein 1 (PD-1). Null if not applicable."
+        },
+        "regulatory_status": {
+          "bsonType": "string",
+          "enum": [
+            "Approved",
+            "Investigational",
+            "Compassionate Use"
+          ]
+        },
+        "created_at": {
+          "bsonType": "date"
+        }
+      }
+    }
+  },
+  "patients": {
+    "$jsonSchema": {
+      "bsonType": "object",
+      "title": "Patients",
+      "description": "De-identified clinical trial participant. May be enrolled in 1-3 trials (enrolled_trials). Referenced by adverse_events.patient_id.",
+      "required": [
+        "patient_id",
+        "name",
+        "date_of_birth",
+        "gender",
+        "ethnicity",
+        "bmi",
+        "smoking_status",
+        "diagnosis",
+        "site_id",
+        "enrolled_trials",
+        "contact_info",
+        "created_at"
+      ],
+      "properties": {
+        "patient_id": {
+          "bsonType": "string",
+          "pattern": "^PT-[0-9]{6}$",
+          "description": "Unique. Format PT-XXXXXX, e.g. PT-001023."
+        },
+        "name": {
+          "bsonType": "string",
+          "description": "Synthetic full name (Firstname Lastname)."
+        },
+        "date_of_birth": {
+          "bsonType": "date",
+          "description": "ISO 8601. Range: 1940-01-01 to 2005-12-31."
+        },
+        "gender": {
+          "bsonType": "string",
+          "enum": [
+            "Male",
+            "Female",
+            "Non-binary",
+            "Prefer not to say"
+          ]
+        },
+        "ethnicity": {
+          "bsonType": "string",
+          "enum": [
+            "Malay",
+            "Chinese",
+            "Indian",
+            "Caucasian",
+            "African",
+            "Hispanic",
+            "Other"
+          ]
+        },
+        "bmi": {
+          "bsonType": "double",
+          "minimum": 15.0,
+          "maximum": 45.0,
+          "description": "Recorded at enrolment."
+        },
+        "smoking_status": {
+          "bsonType": "string",
+          "enum": [
+            "Never",
+            "Former",
+            "Current"
+          ]
+        },
+        "diagnosis": {
+          "bsonType": "object",
+          "description": "Embedded primary diagnosis at enrolment.",
+          "required": [
+            "icd10_code",
+            "description",
+            "diagnosed_on"
+          ],
+          "properties": {
+            "icd10_code": {
+              "bsonType": "string"
+            },
+            "description": {
+              "bsonType": "string"
+            },
+            "diagnosed_on": {
+              "bsonType": "date"
+            }
+          }
+        },
+        "comorbidities": {
+          "bsonType": "array",
+          "description": "0-5 entries, each an ICD-10 code + label string.",
+          "minItems": 0,
+          "maxItems": 5,
+          "items": {
+            "bsonType": "string"
+          }
+        },
+        "site_id": {
+          "bsonType": "string",
+          "enum": [
+            "SITE-01",
+            "SITE-02",
+            "SITE-03",
+            "SITE-04",
+            "SITE-05"
+          ],
+          "description": "Single research site the patient is registered at. Does not change over the course of participation."
+        },
+        "enrolled_trials": {
+          "bsonType": "array",
+          "description": "1-3 entries. Array of trial_id strings (references clinical_trials.trial_id). Bidirectional with clinical_trials \u2014 trials do not store a reverse patient list; that side is derived by querying patients.enrolled_trials.",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "bsonType": "string",
+            "pattern": "^NCT-[0-9]{8}$"
+          }
+        },
+        "contact_info": {
+          "bsonType": "object",
+          "description": "Embedded, synthetic.",
+          "required": [
+            "email",
+            "phone",
+            "emergency_contact"
+          ],
+          "properties": {
+            "email": {
+              "bsonType": "string"
+            },
+            "phone": {
+              "bsonType": "string"
+            },
+            "emergency_contact": {
+              "bsonType": "string"
+            }
+          }
+        },
+        "created_at": {
+          "bsonType": "date",
+          "description": "Record creation timestamp."
+        }
+      }
+    }
+  },
+  "adverse_events": {
+    "$jsonSchema": {
+      "bsonType": "object",
+      "title": "Adverse Events",
+      "description": "A single adverse event reported for a patient during a trial. Most relationship-dense entity: patient_id, trial_id, and intervention_id are all mandatory. Arm is NOT stored directly here \u2014 to find it, look up intervention_id -> interventions.arm_label. Grading follows CTCAE v5.0.",
+      "required": [
+        "ae_id",
+        "patient_id",
+        "trial_id",
+        "intervention_id",
+        "event_name",
+        "system_organ_class",
+        "ctcae_grade",
+        "onset_date",
+        "outcome",
+        "serious",
+        "action_taken",
+        "causality",
+        "reported_by",
+        "created_at"
+      ],
+      "properties": {
+        "ae_id": {
+          "bsonType": "string",
+          "pattern": "^AE-[0-9]{8}$",
+          "description": "Unique. Format AE-XXXXXXXX."
+        },
+        "patient_id": {
+          "bsonType": "string",
+          "pattern": "^PT-[0-9]{6}$",
+          "description": "Reference to patients.patient_id. Mandatory \u2014 a record missing this is incomplete."
+        },
+        "trial_id": {
+          "bsonType": "string",
+          "pattern": "^NCT-[0-9]{8}$",
+          "description": "Reference to clinical_trials.trial_id. Mandatory."
+        },
+        "intervention_id": {
+          "bsonType": "string",
+          "pattern": "^INT-[0-9]{6}$",
+          "description": "Reference to interventions.intervention_id. Mandatory. Also the indirect path to the arm: interventions.arm_label."
+        },
+        "event_name": {
+          "bsonType": "string",
+          "description": "MedDRA-style term, e.g. Neutropenia, Nausea, Elevated ALT, Rash maculopapular."
+        },
+        "system_organ_class": {
+          "bsonType": "string",
+          "description": "MedDRA SOC, e.g. Blood and lymphatic system disorders, Gastrointestinal disorders, Nervous system disorders, Hepatobiliary disorders, Skin and subcutaneous tissue disorders."
+        },
+        "ctcae_grade": {
+          "bsonType": "int",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "CTCAE grade: 1 (Mild) - 5 (Fatal)."
+        },
+        "onset_date": {
+          "bsonType": "date",
+          "description": "Must be after the patient's enrolment date (enforced at application/ingestion level)."
+        },
+        "resolution_date": {
+          "bsonType": [
+            "date",
+            "null"
+          ],
+          "description": "Null if ongoing."
+        },
+        "outcome": {
+          "bsonType": "string",
+          "enum": [
+            "Resolved",
+            "Resolving",
+            "Not resolved",
+            "Fatal",
+            "Unknown"
+          ]
+        },
+        "serious": {
+          "bsonType": "bool",
+          "description": "true if ctcae_grade >= 3 or required hospitalisation."
+        },
+        "action_taken": {
+          "bsonType": "string",
+          "enum": [
+            "None",
+            "Dose reduced",
+            "Dose interrupted",
+            "Drug withdrawn",
+            "Supportive care",
+            "Other"
+          ]
+        },
+        "causality": {
+          "bsonType": "string",
+          "enum": [
+            "Unrelated",
+            "Unlikely",
+            "Possible",
+            "Probable",
+            "Definite"
+          ]
+        },
+        "lab_values": {
+          "bsonType": [
+            "object",
+            "null"
+          ],
+          "description": "Null if no lab data.",
+          "properties": {
+            "test_name": {
+              "bsonType": "string"
+            },
+            "value": {
+              "bsonType": "double"
+            },
+            "unit": {
+              "bsonType": "string"
+            },
+            "reference_range": {
+              "bsonType": "string"
+            }
+          }
+        },
+        "reported_by": {
+          "bsonType": "string",
+          "enum": [
+            "Investigator",
+            "Patient",
+            "Nurse",
+            "Sponsor"
+          ]
+        },
+        "created_at": {
+          "bsonType": "date"
+        }
+      }
+    }
+  }
+}

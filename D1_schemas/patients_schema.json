@@ -1,0 +1,100 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "title": "Patients",
+    "description": "De-identified clinical trial participant. May be enrolled in 1-3 trials (enrolled_trials). Referenced by adverse_events.patient_id.",
+    "required": [
+      "patient_id",
+      "name",
+      "date_of_birth",
+      "gender",
+      "ethnicity",
+      "bmi",
+      "smoking_status",
+      "diagnosis",
+      "site_id",
+      "enrolled_trials",
+      "contact_info",
+      "created_at"
+    ],
+    "properties": {
+      "patient_id": {
+        "bsonType": "string",
+        "pattern": "^PT-[0-9]{6}$",
+        "description": "Unique. Format PT-XXXXXX, e.g. PT-001023."
+      },
+      "name": {
+        "bsonType": "string",
+        "description": "Synthetic full name (Firstname Lastname)."
+      },
+      "date_of_birth": {
+        "bsonType": "date",
+        "description": "ISO 8601. Range: 1940-01-01 to 2005-12-31."
+      },
+      "gender": {
+        "bsonType": "string",
+        "enum": ["Male", "Female", "Non-binary", "Prefer not to say"]
+      },
+      "ethnicity": {
+        "bsonType": "string",
+        "enum": ["Malay", "Chinese", "Indian", "Caucasian", "African", "Hispanic", "Other"]
+      },
+      "bmi": {
+        "bsonType": "double",
+        "minimum": 15.0,
+        "maximum": 45.0,
+        "description": "Recorded at enrolment."
+      },
+      "smoking_status": {
+        "bsonType": "string",
+        "enum": ["Never", "Former", "Current"]
+      },
+      "diagnosis": {
+        "bsonType": "object",
+        "description": "Embedded primary diagnosis at enrolment.",
+        "required": ["icd10_code", "description", "diagnosed_on"],
+        "properties": {
+          "icd10_code": { "bsonType": "string" },
+          "description": { "bsonType": "string" },
+          "diagnosed_on": { "bsonType": "date" }
+        }
+      },
+      "comorbidities": {
+        "bsonType": "array",
+        "description": "0-5 entries, each an ICD-10 code + label string.",
+        "minItems": 0,
+        "maxItems": 5,
+        "items": { "bsonType": "string" }
+      },
+      "site_id": {
+        "bsonType": "string",
+        "enum": ["SITE-01", "SITE-02", "SITE-03", "SITE-04", "SITE-05"],
+        "description": "Single research site the patient is registered at. Does not change over the course of participation."
+      },
+      "enrolled_trials": {
+        "bsonType": "array",
+        "description": "1-3 entries. Array of trial_id strings (references clinical_trials.trial_id). Bidirectional with clinical_trials — trials do not store a reverse patient list; that side is derived by querying patients.enrolled_trials.",
+        "minItems": 1,
+        "maxItems": 3,
+        "items": {
+          "bsonType": "string",
+          "pattern": "^NCT-[0-9]{8}$"
+        }
+      },
+      "contact_info": {
+        "bsonType": "object",
+        "description": "Embedded, synthetic.",
+        "required": ["email", "phone", "emergency_contact"],
+        "properties": {
+          "email": { "bsonType": "string" },
+          "phone": { "bsonType": "string" },
+          "emergency_contact": { "bsonType": "string" }
+        }
+      },
+      "created_at": {
+        "bsonType": "date",
+        "description": "Record creation timestamp."
+      }
+    }
+  }
+}

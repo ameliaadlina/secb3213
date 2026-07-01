@@ -1,0 +1,83 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "title": "Interventions",
+    "description": "A specific therapeutic intervention administered within one arm of one trial. Belongs to exactly one arm within one trial — has no clinical meaning outside that context. Referenced by adverse_events.intervention_id.",
+    "required": [
+      "intervention_id",
+      "trial_id",
+      "arm_label",
+      "name",
+      "type",
+      "dosage",
+      "duration_weeks",
+      "regulatory_status",
+      "created_at"
+    ],
+    "properties": {
+      "intervention_id": {
+        "bsonType": "string",
+        "pattern": "^INT-[0-9]{6}$",
+        "description": "Unique. Format INT-XXXXXX."
+      },
+      "trial_id": {
+        "bsonType": "string",
+        "pattern": "^NCT-[0-9]{8}$",
+        "description": "Reference to clinical_trials.trial_id. Required — an intervention without a trial context has no meaning."
+      },
+      "arm_label": {
+        "bsonType": "string",
+        "description": "Must match an arm_label in the parent trial's arms array. This is the field used to trace an adverse event to its arm: AE -> intervention_id -> this arm_label."
+      },
+      "name": {
+        "bsonType": "string",
+        "description": "Generic or brand name, e.g. Pembrolizumab, Placebo saline, Metformin 500mg."
+      },
+      "mechanism": {
+        "bsonType": "string",
+        "description": "Optional short description, e.g. PD-1 checkpoint inhibitor."
+      },
+      "type": {
+        "bsonType": "string",
+        "enum": ["Drug", "Biologic", "Device", "Procedure", "Dietary Supplement", "Placebo", "Other"]
+      },
+      "dosage": {
+        "bsonType": "object",
+        "required": ["amount", "unit", "frequency", "route"],
+        "properties": {
+          "amount": { "bsonType": "double" },
+          "unit": {
+            "bsonType": "string",
+            "enum": ["mg", "mg/kg", "IU", "mL"]
+          },
+          "frequency": {
+            "bsonType": "string",
+            "enum": ["Once daily", "Twice daily", "Weekly", "Biweekly", "Monthly"]
+          },
+          "route": {
+            "bsonType": "string",
+            "enum": ["Oral", "Intravenous", "Subcutaneous", "Intramuscular", "Topical"]
+          }
+        }
+      },
+      "duration_weeks": {
+        "bsonType": "int",
+        "minimum": 1,
+        "maximum": 104
+      },
+      "target_gene": {
+        "bsonType": ["string", "null"],
+        "description": "HGNC gene symbol, e.g. EGFR, BRCA1, TP53, PD-L1. Null if not applicable."
+      },
+      "target_protein": {
+        "bsonType": ["string", "null"],
+        "description": "UniProt-style name, e.g. Programmed cell death protein 1 (PD-1). Null if not applicable."
+      },
+      "regulatory_status": {
+        "bsonType": "string",
+        "enum": ["Approved", "Investigational", "Compassionate Use"]
+      },
+      "created_at": { "bsonType": "date" }
+    }
+  }
+}
