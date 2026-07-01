@@ -6,9 +6,9 @@ prototype: MongoDB + FastAPI + Streamlit/Gradio.
 **Team**
 | Member | Domain | Collections | ARs |
 |---|---|---|---|
-| A — _name_ | Trials & Interventions | `clinical_trials`, `interventions` | AR1, AR6, AR9 |
-| B — _name_ | Patients & Sites | `patients` | AR2, AR3, AR8 |
-| C — _name_ | Adverse Events | `adverse_events` | AR4, AR5, AR7, AR10 |
+| A — Amelia| Trials & Interventions | `clinical_trials`, `interventions` | AR1, AR6, AR9 |
+| B — Hafiz | Patients & Sites | `patients` | AR2, AR3, AR8 |
+| C — Ravinesh | Adverse Events | `adverse_events` | AR4, AR5, AR7, AR10 |
 
 ---
 
