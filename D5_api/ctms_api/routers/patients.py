@@ -6,7 +6,7 @@ enrolment / AE burden).
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends, Query
 
-from db import patients as patients_col
+from db import patients as patients_col, adverse_events as ae_col
 from schemas import Envelope, paginate, pagination_params
 
 router = APIRouter()
@@ -90,4 +90,48 @@ def patients_for_trial(
 def site_enrolment_ae_burden(
     pagination: dict = Depends(pagination_params),
 ):
-    raise HTTPException(status_code=501, detail="TODO: implement AR8 aggregation pipeline")
+    pipeline = [
+        {
+            "$group": {
+                "_id": "$site_id",
+                "patient_count": {"$sum": 1},
+                "patient_ids": {"$push": "$patient_id"},
+            }
+        },
+        {
+            "$lookup": {
+                "from": "adverse_events",
+                "localField": "patient_ids",
+                "foreignField": "patient_id",
+                "as": "adverse_events",
+            }
+        },
+        {
+            "$project": {
+                "_id": 0,
+                "site_id": "$_id",
+                "patient_count": 1,
+                "total_ae_count": {"$size": "$adverse_events"},
+                "serious_ae_count": {
+                    "$size": {
+                        "$filter": {
+                            "input": "$adverse_events",
+                            "as": "ae",
+                            "cond": {"$eq": ["$$ae.serious", True]},
+                        }
+                    }
+                },
+            }
+        },
+        {"$sort": {"site_id": 1}},
+    ]
+
+    all_data = list(patients_col.aggregate(pipeline))
+    total = len(all_data)
+
+    page = pagination["page"]
+    limit = pagination["limit"]
+    skip = (page - 1) * limit
+    data = all_data[skip: skip + limit]
+
+    return Envelope(total=total, page=page, limit=limit, data=data)
