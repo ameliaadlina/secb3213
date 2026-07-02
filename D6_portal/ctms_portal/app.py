@@ -6,7 +6,7 @@ Run with:
     streamlit run app.py
 """
 import streamlit as st
-from pages import trials_and_interventions_dashboard, patients_search, ae_analytics
+from views import trials_and_interventions_dashboard, patients_search, ae_analytics
 
 st.set_page_config(page_title="CTMS Data Portal", layout="wide")
 
