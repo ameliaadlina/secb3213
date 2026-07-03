@@ -27,8 +27,6 @@ Thumbs.db
 .idea/
 
 # --- Large / binary deliverables (share via Drive, link in README) ---
-D3_backup/*.tar.gz
-D3_backup/*.zip
 D8_video/*.mp4
 D8_video/*.mov
 
